@@ -18,11 +18,11 @@ use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Cron\CronBundle\Tests\TestCase\SymfonyWebTestCase;
 /**
  * @author Dries De Peuter <dries@nousefreak.be>
  */
-class CronDisableCommandTest extends WebTestCase
+class CronDisableCommandTest extends SymfonyWebTestCase
 {
     public function testUnknownJob(): void
     {
@@ -53,7 +53,7 @@ class CronDisableCommandTest extends WebTestCase
         $manager
             ->expects($this->once())
             ->method('getJobByName')
-            ->will($this->returnValue($job));
+            ->willReturn($job);
 
         $command = $this->getCommand($manager);
 
@@ -68,9 +68,7 @@ class CronDisableCommandTest extends WebTestCase
 
     public function testNoJobArgument(): void
     {
-        $manager = $this->getMockBuilder(Manager::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $manager = $this->createStub(Manager::class);
         $command = $this->getCommand($manager);
 
         $this->expectException(RuntimeException::class);
@@ -81,12 +79,11 @@ class CronDisableCommandTest extends WebTestCase
 
     protected function getCommand(Manager $manager): Command
     {
-        $kernel = $this->createKernel();
-        $kernel->boot();
+        $kernel = static::bootKernel();
         $kernel->getContainer()->set('cron.manager', $manager);
 
         $application = new Application($kernel);
-        $application->add(new CronDisableCommand($kernel->getContainer()));
+        $application->addCommand(new CronDisableCommand($kernel->getContainer()));
 
         return $application->find('cron:disable');
     }

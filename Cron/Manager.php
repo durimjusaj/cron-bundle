@@ -53,7 +53,7 @@ class Manager
     {
         try {
             $connection = $this->manager->getConnection();
-            if ($connection instanceof Connection && true === method_exists($connection, 'ping') && false === $connection->ping()) {
+            if (true === method_exists($connection, 'ping') && false === $connection->ping()) {
                 $connection->close();
                 $connection->connect();
             }
@@ -81,7 +81,7 @@ class Manager
     {
         try {
             $connection = $this->manager->getConnection();
-            if ($connection instanceof Connection && true === method_exists($connection, 'ping') && false === $connection->ping()) {
+            if (true === method_exists($connection, 'ping') && false === $connection->ping()) {
                 $connection->close();
                 $connection->connect();
             }

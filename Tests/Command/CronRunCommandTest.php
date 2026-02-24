@@ -14,16 +14,17 @@ use Cron\CronBundle\Command\CronRunCommand;
 use Cron\CronBundle\Cron\Manager;
 use Cron\CronBundle\Cron\Resolver;
 use Cron\CronBundle\Job\ShellJobWrapper;
+use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Cron\CronBundle\Tests\TestCase\SymfonyWebTestCase;
 /**
  * @author Dries De Peuter <dries@nousefreak.be>
  */
-class CronRunCommandTest extends WebTestCase
+class CronRunCommandTest extends SymfonyWebTestCase
 {
-    public function testNoJobs()
+    public function testNoJobs(): void
     {
         $manager = $this->getMockBuilder(Manager::class)
             ->disableOriginalConstructor()
@@ -31,15 +32,10 @@ class CronRunCommandTest extends WebTestCase
         $manager
             ->expects($this->once())
             ->method('saveReports')
-            ->with($this->isType('array'));
+            ->with($this->isArray());
 
-        $resolver = $this->getMockBuilder(Resolver::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $resolver
-            ->expects($this->any())
-            ->method('resolve')
-            ->will($this->returnValue(array()));
+        $resolver = $this->createStub(Resolver::class);
+        $resolver->method('resolve')->willReturn([]);
 
         $command = $this->getCommand($manager, $resolver);
 
@@ -49,7 +45,7 @@ class CronRunCommandTest extends WebTestCase
         $this->assertStringContainsString('time:', $commandTester->getDisplay());
     }
 
-    public function testOneJob()
+    public function testOneJob(): void
     {
         $manager = $this->getMockBuilder(Manager::class)
             ->disableOriginalConstructor()
@@ -57,19 +53,12 @@ class CronRunCommandTest extends WebTestCase
         $manager
             ->expects($this->once())
             ->method('saveReports')
-            ->with($this->isType('array'));
+            ->with($this->isArray());
 
         $job = new ShellJobWrapper();
 
-        $resolver = $this->getMockBuilder(Resolver::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $resolver
-            ->expects($this->any())
-            ->method('resolve')
-            ->will($this->returnValue(array(
-                        $job
-                    )));
+        $resolver = $this->createStub(Resolver::class);
+        $resolver->method('resolve')->willReturn([$job]);
 
         $command = $this->getCommand($manager, $resolver);
 
@@ -79,15 +68,13 @@ class CronRunCommandTest extends WebTestCase
         $this->assertStringContainsString('time:', $commandTester->getDisplay());
     }
 
-    public function testNamedJob()
+    public function testNamedJob(): void
     {
-        $this->expectException('InvalidArgumentException');
-        $manager = $this->getMockBuilder(Manager::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $resolver = $this->getMockBuilder(Resolver::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->expectException(InvalidArgumentException::class);
+        $manager = $this->createStub(Manager::class);
+        $manager->method('getJobByName')->willReturn(null);
+
+        $resolver = $this->createStub(Resolver::class);
 
         $command = $this->getCommand($manager, $resolver);
 
@@ -101,13 +88,12 @@ class CronRunCommandTest extends WebTestCase
 
     protected function getCommand(Manager $manager, Resolver $resolver): Command
     {
-        $kernel = $this->createKernel();
-        $kernel->boot();
+        $kernel = static::bootKernel();
         $kernel->getContainer()->set('cron.manager', $manager);
         $kernel->getContainer()->set('cron.resolver', $resolver);
 
         $application = new Application($kernel);
-        $application->add(new CronRunCommand($kernel->getContainer()));
+        $application->addCommand(new CronRunCommand($kernel->getContainer()));
 
         return $application->find('cron:run');
     }

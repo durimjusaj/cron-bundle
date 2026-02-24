@@ -7,29 +7,28 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 
-#[ORM\Table('cron_job')]
-#[ORM\UniqueConstraint('un_name', ['name'])]
-#[ORM\Entity(CronJobRepository::class)]
+#[ORM\Entity(repositoryClass: CronJobRepository::class)]
+#[ORM\Table(name: 'cron_job', uniqueConstraints: [new ORM\UniqueConstraint(name: 'un_name', columns: ['name'])])]
 class CronJob
 {
-    #[ORM\Column('id')]
     #[ORM\Id]
-    #[ORM\GeneratedValue('AUTO')]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column('name', length: 191)]
+    #[ORM\Column(type: 'string', length: 191)]
     private ?string $name = null;
 
-    #[ORM\Column('command', length: 1024)]
+    #[ORM\Column(type: 'string', length: 1024)]
     private ?string $command = null;
 
-    #[ORM\Column('schedule', length: 191)]
+    #[ORM\Column(type: 'string', length: 191)]
     private ?string $schedule = null;
 
-    #[ORM\Column('description', length: 191)]
+    #[ORM\Column(type: 'string', length: 191)]
     private ?string $description = null;
 
-    #[ORM\Column('enabled')]
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $enabled = null;
 
     #[ORM\OneToMany(targetEntity: CronReport::class, mappedBy: 'job', cascade: ['remove'])]

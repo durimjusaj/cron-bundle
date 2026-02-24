@@ -14,8 +14,8 @@ use Cron\CronBundle\Cron\Manager;
 use Cron\CronBundle\Entity\CronJob;
 use Cron\CronBundle\Job\ShellJobWrapper;
 use Cron\Report\JobReport;
-use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Exception;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -26,29 +26,46 @@ use PHPUnit\Framework\TestCase;
  */
 class ManagerTest extends TestCase
 {
-    public function testListJobs()
+    public function testListJobs(): void
     {
-        $manager = $this->getManagerWithRepo('findBy');
-        $findByArguments = array(array(), array('name' => 'asc'), null, null);
+        $jobRepo = $this->buildRepo();
+        $jobRepo
+            ->expects($this->once())
+            ->method('findBy')
+            ->with([], ['name' => 'asc'], null, null)
+            ->willReturn(['listJobsResult']);
 
-        $this->assertEquals($findByArguments, $manager->listJobs());
+        $manager = $this->getManagerForRepo($jobRepo);
+        $this->assertSame(['listJobsResult'], $manager->listJobs());
     }
 
-    public function testListEnabledJobs()
+    public function testListEnabledJobs(): void
     {
-        $manager = $this->getManagerWithRepo('findBy');
-        $findByArguments = array(array('enabled' => 1), array('name' => 'asc'), null, null);
+        $jobRepo = $this->buildRepo();
+        $jobRepo
+            ->expects($this->once())
+            ->method('findBy')
+            ->with(['enabled' => 1], ['name' => 'asc'], null, null)
+            ->willReturn(['listEnabledJobsResult']);
 
-        $this->assertEquals($findByArguments, $manager->listEnabledJobs());
+        $manager = $this->getManagerForRepo($jobRepo);
+        $this->assertSame(['listEnabledJobsResult'], $manager->listEnabledJobs());
     }
 
-    public function getJobByName(): void
+    public function testGetJobByName(): void
     {
-        $manager = $this->getManagerWithRepo('findOneBy');
         $jobName = 'testJobName';
-        $findByArguments = array(array('name' => $jobName), null, null, null);
+        $job = new CronJob();
 
-        $this->assertEquals($findByArguments, $manager->getJobByName($jobName));
+        $jobRepo = $this->buildRepo();
+        $jobRepo
+            ->expects($this->once())
+            ->method('findOneBy')
+            ->with(['name' => $jobName], null)
+            ->willReturn($job);
+
+        $manager = $this->getManagerForRepo($jobRepo);
+        $this->assertSame($job, $manager->getJobByName($jobName));
     }
 
     /**
@@ -65,11 +82,11 @@ class ManagerTest extends TestCase
         $registry
             ->expects($this->once())
             ->method('getManagerForClass')
-            ->will($this->returnValue($entityManager));
+            ->willReturn($entityManager);
 
         $manager = $this->getManager($registry);
 
-        $manager->saveReports(array());
+        $manager->saveReports([]);
     }
 
     /**
@@ -89,7 +106,7 @@ class ManagerTest extends TestCase
         $registry
             ->expects($this->once())
             ->method('getManagerForClass')
-            ->will($this->returnValue($entityManager));
+            ->willReturn($entityManager);
 
         $manager = $this->getManager($registry);
 
@@ -97,12 +114,12 @@ class ManagerTest extends TestCase
         $job->setCommand('ls');
 
         $report = $this->getMockBuilder(JobReport::class)
-            ->setConstructorArgs(array($job))
+            ->setConstructorArgs([$job])
             ->getMock();
 
         $report->expects($this->any())
             ->method('getJob')
-            ->will($this->returnValue($job));
+            ->willReturn($job);
         $report->expects($this->exactly(2))
             ->method('getStartTime');
         $report->expects($this->once())
@@ -125,7 +142,7 @@ class ManagerTest extends TestCase
         $registry
             ->expects($this->once())
             ->method('getManagerForClass')
-            ->will($this->returnValue($entityManager));
+            ->willReturn($entityManager);
 
         $manager = $this->getManager($registry);
 
@@ -146,38 +163,26 @@ class ManagerTest extends TestCase
         $registry
             ->expects($this->once())
             ->method('getManagerForClass')
-            ->will($this->returnValue($entityManager));
+            ->willReturn($entityManager);
 
         $manager = $this->getManager($registry);
 
         $manager->saveJob(new CronJob());
     }
 
-    protected function getManagerWithRepo($repoCall): Manager
+    protected function getManagerForRepo(MockObject $jobRepo): Manager
     {
-        $jobRepo = $this->buildRepo();
-        $jobRepo
-            ->expects($this->once())
-            ->method($repoCall)
-            ->will($this->returnCallback(function() {
-                        return func_get_args();
-                    }));
-
-        $registry = $this->buildRegistry();
-        $registry
-            ->expects($this->any())
-            ->method('getRepository')
-            ->will($this->returnValue($jobRepo));
-
         $entityManager = $this->buildEm();
         $entityManager
             ->expects($this->once())
             ->method('getRepository')
-            ->will($this->returnValue($jobRepo));
+            ->willReturn($jobRepo);
+
+        $registry = $this->buildRegistry();
         $registry
             ->expects($this->once())
             ->method('getManagerForClass')
-            ->will($this->returnValue($entityManager));
+            ->willReturn($entityManager);
 
         return $this->getManager($registry);
     }
@@ -196,14 +201,14 @@ class ManagerTest extends TestCase
             ->getMock();
     }
 
-    protected function buildRegistry(): MockObject
+    protected function buildRegistry(): ManagerRegistry&MockObject
     {
-        return $this->getMockBuilder(Registry::class)
+        return $this->getMockBuilder(ManagerRegistry::class)
             ->disableOriginalConstructor()
             ->getMock();
     }
 
-    protected function getManager($registry): Manager
+    protected function getManager(ManagerRegistry $registry): Manager
     {
         return new Manager($registry);
     }
