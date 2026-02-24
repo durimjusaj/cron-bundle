@@ -11,11 +11,11 @@
 namespace Cron\CronBundle\Tests\Cron;
 
 use Cron\CronBundle\Cron\CommandBuilder;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Cron\CronBundle\Tests\TestCase\SymfonyWebTestCase;
 /**
  * @author Dries De Peuter <dries@nousefreak.be>
  */
-class CommandBuilderTest extends WebTestCase
+class CommandBuilderTest extends SymfonyWebTestCase
 {
     public function testRenderEnvironment()
     {
@@ -27,9 +27,8 @@ class CommandBuilderTest extends WebTestCase
 
     public function testEnv()
     {
-        $kernel = $this->createKernel();
-        $kernel->boot();
-        $builder = $kernel->getContainer()->get('cron.command_builder');
+        static::bootKernel();
+        $builder = static::getContainer()->get('cron.command_builder');
 
         $this->assertMatchesRegularExpression(sprintf('/ --env=%s$/', 'test'), $builder->build(''));
     }
