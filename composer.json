@@ -10,19 +10,19 @@
         }
     ],
     "require": {
-        "php": ">=8.2",
+        "php": "^8.4",
         "ext-pcntl": "*",
         "ext-posix": "*",
         "cron/cron": "^1.0.1",
-        "doctrine/collections": "*",
-        "doctrine/dbal": "*",
-        "doctrine/orm": ">=2.4.5",
-        "doctrine/persistence": "*",
-        "symfony/config": "^7.0",
-        "symfony/console": "^7.0",
-        "symfony/dependency-injection": "^7.0",
-        "symfony/http-kernel": "^7.0",
-        "symfony/process": "^7.0"
+        "doctrine/collections": "^2.2",
+        "doctrine/dbal": "^4.0",
+        "doctrine/orm": "^3.6",
+        "doctrine/persistence": "^4.0",
+        "symfony/config": "^8.0",
+        "symfony/console": "^8.0",
+        "symfony/dependency-injection": "^8.0",
+        "symfony/http-kernel": "^8.0",
+        "symfony/process": "^8.0"
     },
     "autoload": {
         "psr-4" : {
@@ -43,9 +43,9 @@
     "require-dev": {
         "doctrine/doctrine-bundle": "*",
         "monolog/monolog": "*",
-        "phpunit/phpunit": "^10",
-        "symfony/security-csrf": "^7.0",
-        "symfony/translation": "^7.0",
-        "symfony/yaml": "^7.0"
+        "phpunit/phpunit": "^12.5",
+        "symfony/security-csrf": "^8.0",
+        "symfony/translation": "^8.0",
+        "symfony/yaml": "^8.0"
     }
 }

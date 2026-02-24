@@ -5,32 +5,32 @@ namespace Cron\CronBundle\Entity;
 use Cron\CronBundle\Repository\CronReportRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Table('cron_report')]
-#[ORM\Entity(CronReportRepository::class)]
+#[ORM\Entity(repositoryClass: CronReportRepository::class)]
+#[ORM\Table(name: 'cron_report')]
 class CronReport
 {
-    #[ORM\Column('id')]
     #[ORM\Id]
-    #[ORM\GeneratedValue('AUTO')]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column('run_at', 'datetime')]
+    #[ORM\Column(name: 'run_at', type: 'datetime', nullable: true)]
     protected ?\DateTime $runAt = null;
 
-    #[ORM\Column('run_time')]
+    #[ORM\Column(name: 'run_time', type: 'float', nullable: true)]
     protected ?float $runTime = null;
 
-    #[ORM\Column('exit_code')]
+    #[ORM\Column(name: 'exit_code', type: 'integer', nullable: true)]
     protected ?int $exitCode = null;
 
-    #[ORM\Column('output', 'text')]
+    #[ORM\Column(name: 'output', type: 'text', nullable: true)]
     protected ?string $output = null;
 
-    #[ORM\Column('error', 'text')]
+    #[ORM\Column(name: 'error', type: 'text', nullable: true)]
     protected ?string $error = null;
 
     #[ORM\ManyToOne(targetEntity: CronJob::class, inversedBy: 'reports')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE', nullable: true)]
     protected ?CronJob $job = null;
 
     /**
